@@ -2,51 +2,74 @@
 cmake_minimum_required (VERSION 3.0)
 
 # project related information
-project (Slicot
-        VERSION 5.0.20101122
-        LANGUAGES Fortran)
+project (Slicot VERSION 5.0 LANGUAGES Fortran)
 
 # Fortran compiler checker is needed
 include (CheckFortranCompilerFlag)
 
-# BLAS and LAPACK libraries are needed
-# include (FindBLAS) : not needed as FindLAPACK handles both
-include (FindLAPACK)
+# Try checking if the user supplied libraries work
+include (CheckFortranFunctionExists)
 
-# if (NOT BLAS_FOUND)
-#   message(SEND_ERROR "Slicot depends on BLAS")
-# elseif (NOT LAPACK_FOUND)
-if (NOT LAPACK_FOUND)
-  message (SEND_ERROR "Slicot depends on LAPACK")
-else()
-  # if (BLAS95_FOUND)
-  #   set (ExtLibs ${ExtLibs} ${BLAS95_LIBRARIES})
-  #   message (STATUS "BLAS95 found: ${BLAS95_LIBRARIES}")
-  # else ()
-  #   set (ExtLibs ${ExtLibs} ${BLAS_LIBRARIES})
-  #   message (STATUS "BLAS found: ${BLAS_LIBRARIES}")
-  # endif ()
-  if (LAPACK95_FOUND)
-    set (ExtLibs ${ExtLibs} ${LAPACK95_LIBRARIES})
-    message (STATUS "LAPACK95 found: ${LAPACK95_LIBRARIES}")
-  else ()
-    set (ExtLibs ${ExtLibs} ${LAPACK_LIBRARIES})
-    message (STATUS "LAPACK found: ${LAPACK_LIBRARIES}")
+set (BlasUsable FALSE)
+set (LapackUsable FALSE)
+
+if (DEFINED BlasLibrary AND EXISTS ${BlasLibrary})
+  message (STATUS "BlasLibrary: ${BlasLibrary}")
+  message (STATUS "Looking for Fortran sgemm")
+  set (CMAKE_REQUIRED_LIBRARIES ${BlasLibrary})
+  CHECK_FORTRAN_FUNCTION_EXISTS (sgemm blascheck)
+
+  if (blascheck)
+    message (STATUS "Looking for Fortran sgemm - found")
+    set (BlasUsable TRUE)
+    set (ExtLibs ${CMAKE_REQUIRED_LIBRARIES})
+    message (STATUS "BLAS library used: ${BlasLibrary}")
+
+    # Check for LAPACK functionality (maybe OpenBLAS?)
+    message (STATUS "Looking for Fortran cheev")
+    CHECK_FORTRAN_FUNCTION_EXISTS (cheev lapackcheck1)
+    if (lapackcheck1)
+      message (STATUS "Looking for Fortran cheev - found")
+      message (STATUS "LAPACK library used: ${BlasLibrary}")
+      set (LapackUsable TRUE)
+    endif (lapackcheck1)
+
+    set (CMAKE_REQUIRED_LIBRARIES)
+  endif (blascheck)
+endif ()
+
+if ((NOT LapackUsable) AND (DEFINED LapackLibrary AND EXISTS ${LapackLibrary}))
+  message (STATUS "LapackLibrary: ${LapackLibrary}")
+  message (STATUS "Looking for Fortran cheev")
+  set (CMAKE_REQUIRED_LIBRARIES ${LapackLibrary})
+  CHECK_FORTRAN_FUNCTION_EXISTS (cheev lapackcheck2)
+
+  if (lapackcheck2)
+    message (STATUS "Looking for Fortran cheev - found")
+    set (LapackUsable TRUE)
+    set (ExtLibs ${ExtLibs} ${CMAKE_REQUIRED_LIBRARIES})
+    message (STATUS "LAPACK library used: ${LapackLibrary}")
+    set (CMAKE_REQUIRED_LIBRARIES)
+  endif (lapackcheck2)
+endif ()
+
+if ((NOT BlasUsable) OR (NOT LapackUsable))
+  include (FindLAPACK)
+
+  if (NOT LAPACK_FOUND)
+    message (SEND_ERROR "Slicot depends on LAPACK: NONE FOUND")
+  else()
+    if (LAPACK95_FOUND)
+      set (ExtLibs ${ExtLibs} ${LAPACK95_LIBRARIES})
+      message (STATUS "LAPACK95 found: ${LAPACK95_LIBRARIES}")
+    else ()
+      set (ExtLibs ${ExtLibs} ${LAPACK_LIBRARIES})
+      message (STATUS "LAPACK found: ${LAPACK_LIBRARIES}")
+    endif ()
   endif ()
 endif ()
 
-# make sure that the default build is a release
-if (NOT CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE Release CACHE STRING
-      "Type of build: Debug [Release]"
-      FORCE)
-endif (NOT CMAKE_BUILD_TYPE)
-
-# default installation folder
-get_filename_component (default_installdir ".." ABSOLUTE)
-set (CMAKE_INSTALL_PREFIX ${default_installdir} CACHE STRING
-      "Installation directory: [${default_installdir}]"
-      FORCE)
+message(STATUS "ExtLibs: ${ExtLibs}")
 
 CHECK_Fortran_COMPILER_FLAG ("-funroll-all-loops -fno-f2c -O3" ReleaseValid)
 CHECK_Fortran_COMPILER_FLAG ("-fno-f2c -O0 -g" DebugValid)
