@@ -1,4 +1,4 @@
-add_library(slicot
+add_library(slicot SHARED
             AB01MD.f AB01ND.f AB01OD.f AB04MD.f AB05MD.f AB05ND.f AB05OD.f
             AB05PD.f AB05QD.f AB05RD.f AB05SD.f AB07MD.f AB07ND.f AB08MD.f
             AB08MZ.f AB08ND.f AB08NX.f AB08NZ.f AB09AD.f AB09AX.f AB09BD.f
@@ -74,4 +74,5 @@ add_library(slicot
 target_link_libraries(slicot lapack_aux ${ExtLibs})
 
 install(TARGETS slicot
+        LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)

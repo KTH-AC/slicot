@@ -71,19 +71,29 @@ endif ()
 
 message(STATUS "ExtLibs: ${ExtLibs}")
 
-CHECK_Fortran_COMPILER_FLAG ("-funroll-all-loops -fno-f2c -O3" ReleaseValid)
-CHECK_Fortran_COMPILER_FLAG ("-fno-f2c -O0 -g" DebugValid)
+CHECK_Fortran_COMPILER_FLAG ("-funroll-all-loops -fno-f2c -O3 -fPIC" ReleaseValid)
+CHECK_Fortran_COMPILER_FLAG ("-fno-f2c -O0 -g -fPIC" DebugValid)
 
 if (ReleaseValid)
-  set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3")
+  set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3 -fPIC")
 else ()
-  set (CMAKE_Fortran_FLAGS_RELEASE "-O3")
+  set (CMAKE_Fortran_FLAGS_RELEASE "-O3 -fPIC")
 endif ()
 
 if (DebugValid)
-  set (CMAKE_Fortran_FLAGS_DEBUG "-fno-f2c -O0 -g")
+  set (CMAKE_Fortran_FLAGS_DEBUG "-fno-f2c -O0 -g -fPIC")
 else ()
-  set (CMAKE_Fortran_FLAGS_DEBUG "-O0 -g")
+  set (CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -fPIC")
+endif ()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  message (STATUS "Building for Release")
+elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  message (STATUS "Building for Debug")
+else ()
+  message (STATUS "Building for Release")
+  set (CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Build type: Debug [Release]" FORCE)
 endif ()
 
 add_subdirectory (src)
