@@ -73,6 +73,9 @@ add_library(slicot SHARED
 
 target_link_libraries(slicot lapack_aux ${ExtLibs})
 
+set_property(TARGET slicot PROPERTY VERSION "0.0.0")
+set_property(TARGET slicot PROPERTY SOVERSION 0 )
+
 install(TARGETS slicot
         LIBRARY DESTINATION ${LIB_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
