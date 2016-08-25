@@ -74,5 +74,5 @@ add_library(slicot SHARED
 target_link_libraries(slicot lapack_aux ${ExtLibs})
 
 install(TARGETS slicot
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
