@@ -10,6 +10,15 @@ include (CheckFortranCompilerFlag)
 # Try checking if the user supplied libraries work
 include (CheckFortranFunctionExists)
 
+# Figure out the GNU platform specific installation folders
+include (GNUInstallDirs)
+
+# Do the versioning
+set (SLICOT_MAJOR 5)
+set (SLICOT_MINOR 0)
+set (SLICOT_PATCH 20101122)
+set (SLICOT_VERSION ${SLICOT_MAJOR}.${SLICOT_MINOR}.${SLICOT_PATCH})
+
 set (BlasUsable FALSE)
 set (LapackUsable FALSE)
 
